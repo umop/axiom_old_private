@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
+
+    <script type="text/javascript">
+      var CLIENT_ID = '827197644441-94seon1kknalmqrafhhfteied7vk7tus.apps.googleusercontent.com';
+      var SCOPES = [
+          'https://www.googleapis.com/auth/drive.file'
+      ];
+
+      /**
+       * Check if the current user has authorized the application.
+       *
+       * @param {boolean} useExisting Use existing authorization if available.
+       */
+      function authenticate(useExisting, callback) {
+        gapi.auth.authorize(
+            {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': useExisting},
+            function(authResult) {
+              if (authResult) {
+                // Access token has been successfully retrieved, requests can be sent to the API.
+                console.log('Authenticated: ', authResult);
+                callback();
+              } else {
+                // No access token could be retrieved, force the authorization flow.
+                // checkAuth(false);
+              }
+            }
+        );
+      }
+
+      /**
+       * Load the Drive API client.
+       *
+       * @param {Function} callback Function to call when the client is loaded.
+       */
+      function loadClient(callback) {
+        gapi.client.load('drive', 'v2', callback);
+      }
+
+      /**
+       * Print a GDrive file's metadata.
+       *
+       * @param {String} fileId ID of the file to print metadata for.
+       */
+      function getFile(fileId) {
+        var request = gapi.client.drive.files.get({'fileId': fileId});
+
+        request.execute(function(resp) {
+          if (!resp.error) {
+            console.log('Got file: ', resp);
+          } else if (resp.error.code == 401) {
+            // Access token might have expired.
+            console.log('Token expired?: ', resp)
+          } else {
+            console.log('An error occured: ', resp);
+          }
+        });
+      }
+
+      /**
+       * Get a list of user's files on GDrive.
+       */
+      function listFiles() {
+        var request = gapi.client.drive.files.list({'corpus': 'DEFAULT', 'maxResults': 10});
+
+        request.execute(function(resp) {
+          if (!resp.error) {
+            console.log('Got files: ', resp);
+          } else if (resp.error.code == 401) {
+            // Access token might have expired.
+            console.log('Token expired?: ', resp)
+          } else {
+            console.log('An error occured: ', resp);
+          }
+        });
+      }
+
+      function main() {
+        var doc_id = document.getElementById('docId');
+        authenticate(false, function() {
+          loadClient(function() {
+            // getFile('10TYXLMPrQwj0wjbuVzJa6Yuma1p5-POgOvk6X8wkyLI');
+            // getFile(doc_id.value);
+            listFiles();
+          });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <input id="docId" style="width: 400px"/>
+    <button id="goBtn" onclick="main()">Go</button>
+  </body>
+</html>
