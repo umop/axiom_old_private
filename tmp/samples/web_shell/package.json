@@ -1,0 +1,11 @@
+{
+  "name": "web_shell",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Arnold <ef.npm@ondea.com> (http://www.google.com)",
+  "license": "ISC"
+}

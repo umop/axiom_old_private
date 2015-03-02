@@ -1,0 +1,11 @@
+*
+!/.gitignore
+!/tmp/samples
+# Node
+npm-debug.log
+node_modules/
+# MacOSX
+.DS_Store
+# VS artifacts
+*.suo
+*.sln
