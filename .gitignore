@@ -1,6 +1,3 @@
-*
-!/.gitignore
-!/tmp/samples
 # Node
 npm-debug.log
 node_modules/
