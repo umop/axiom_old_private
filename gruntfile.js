@@ -152,6 +152,30 @@ module.exports = function(grunt) {
         },
         {
           expand: true,
+          cwd: 'samples/scripts/',
+          src: ['**/*.js',
+                '**/*.js.map',
+                '**/*.html'
+          ],
+          dest: 'tmp/samples/scripts'
+        },
+        {
+          expand: true,
+          cwd: 'samples/editor/',
+          src: ['**/*.js',
+                '**/*.js.map',
+                '**/*.html'
+          ],
+          dest: 'tmp/samples/editor'
+        },
+        {
+          expand: true,
+          cwd: '',
+          src: ['acejs/**'],
+          dest: 'tmp/samples/editor/js'
+        },
+        {
+          expand: true,
           cwd: 'samples/web_shell/boot/',
           src: ['**/*.js',
                 '**/*.js.map'
@@ -228,13 +252,37 @@ module.exports = function(grunt) {
         files: ['lib/**/*.js', 'test/**/*.js'],
         tasks: ['transpile', 'make_main_module:test', 'karma:once']
       },
+      samples: {
+        options: {
+          atBegin: true
+        },
+        files: ['lib/**/*.js', 'samples/**/*.js'],
+        tasks: ['check', 'samples']
+      },
       check_test: {
         options: {
           atBegin: true
         },
         files: ['lib/**/*.js', 'test/**/*.js'],
         tasks: ['check', 'transpile', 'make_main_module:test', 'karma:once']
+      },
+      samples: {
+        options: {
+          atBegin: true,
+          livereload: true
+        },
+        files: ['gruntfile.js', 'lib/**/*.js', 'samples/**/*.js', 'samples/**/*.html'],
+        tasks: ['check', 'samples']
+      },
+      just_samples: {
+        options: {
+          atBegin: true,
+          livereload: true
+        },
+        files: ['samples/**/*.js', 'samples/**/*.html'],
+        tasks: ['samples_no_transpile']
       }
+
     },
 
     es6_transpile: {
@@ -262,6 +310,7 @@ module.exports = function(grunt) {
       samples_web_shell: {
         type: "amd",
         fileResolver: ['lib/',
+                       'node_modules/hterm/dist/stub/',
                        'node_modules/hterm/dist/stub/',
                        'samples/web_shell/lib'],
         files: [{
@@ -348,12 +397,15 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['check', 'test']);
 
   // Sample apps
-  grunt.registerTask('samples_web_shell', ['copy:samples_web_shell_files',
-                                         'make_html_index:samples_web_shell']);
+  grunt.registerTask('samples_web_shell',
+                     ['copy:samples_web_shell_files',
+                      'make_html_index:samples_web_shell']);
 
-  grunt.registerTask('samples', ['dist', 'copy:samples_landing_files',
+  grunt.registerTask('samples_no_transpile', ['copy:samples_landing_files',
                                  'samples_web_shell',
                                  'copy:samples_use_globals_files']);
+
+  grunt.registerTask('samples', ['dist', 'samples_no_transpile']);
 
   grunt.registerTask('deploy_samples', ['samples', 'git_deploy:samples']);
 
