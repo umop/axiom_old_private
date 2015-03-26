@@ -34,6 +34,8 @@ window.onload = function() {
       this.dispatchEvent(event);
     }).bind(this)
   });
+
+  setupVisualization(editor);
 }
 
 if (window.opener && window.opener.onEditorWindowOpened) {
@@ -48,4 +50,50 @@ function setContents(contents) {
 function getContents() {
   var session = window.aceEditor.getSession();
   return session.getValue();
+}
+
+function setupVisualization(editor) {
+  editor.on('input', function() {
+    var Range=require("ace/range").Range;
+
+    editor.getSession().unfold(2, true);
+    var content = editor.session.getValue()
+    // var re = /\/\*\* @type \{([A-Za-z_$.]+)\} ?\*\/\n(\s*)var/g;
+    var re = /(|\/\*\* @type \{([^}]+)\} ?\*\/\n(\s*))\bvar /g;
+    while(m = re.exec(content)) {
+      var annotationStartIndex = m.index
+      var annotationEndIndex = m[0].length + annotationStartIndex - 1;
+      var startPosition = editor.session.getDocument().indexToPosition(annotationStartIndex)
+      var endPosition = editor.session.getDocument().indexToPosition(annotationEndIndex)
+      var markerRange = new Range(startPosition.row, startPosition.column, endPosition.row, endPosition.column);
+      var typeName = m[2];
+      if (typeName === undefined) typeName = "var";
+      editor.session.addFold(" " + typeName + " \u25BC ", markerRange);
+      // editor.session.addMarker(markerRange, "ace_selected-word", "text");
+    }
+
+    re = /for \(var ([a-zA-Z_$]+) *\= *([-a-zA-Z$0-9.]+) *; *([a-zA-Z_$]+) *([<=>]+) *([-a-zA-Z$0-9.]+) *; *([a-zA-Z_$]+)(--|\+\+) *\) * \n?\s*\{/g;
+    while(m = re.exec(content)) {
+      var annotationStartIndex = m.index
+      var annotationEndIndex = m[0].length + annotationStartIndex;
+      var startPosition = editor.session.getDocument().indexToPosition(annotationStartIndex)
+      var endPosition = editor.session.getDocument().indexToPosition(annotationEndIndex)
+      var endValue = m[5];
+      editor.session.addFold(" " + m[1] + " \u279C " + m[2] + " .. " + endValue, new Range(startPosition.row, startPosition.column, endPosition.row, endPosition.column));
+    }
+
+  });
+
+  editor.session.addEventListener("changeFold", function(e) {
+    console.log(e);
+    if (e.action == "remove") {
+      e.preventDefault();
+      e.stopPropagation();
+      var range = e.data.range;
+      editor.session.addFold(e.data.placeholder, range);
+      // window.prompt("Type");
+      return false;
+    }
+  });
+  editor.session.setValue("//hello\n  /** @type {string} */\n  var pathSpec = 'hello'")
 }
